@@ -2,6 +2,7 @@ import jswebsockets
 import dom
 import tables
 import strformat
+import sugar
 
 import ../common/command
 
@@ -16,8 +17,8 @@ type
     of akAny: discard
   StateObj = object
     accept: Accept
-    handler: (proc (cmd: Command): void)
-    handlers: Table[CommandKind, (proc (cmd: Command): void)]
+    handler: Command -> void
+    handlers: Table[CommandKind, Command -> void]
   State = ref StateObj
 
 func acceptAny(s: State): bool =
@@ -26,7 +27,7 @@ func acceptAny(s: State): bool =
 func newState(): State =
   State(
     accept: Accept(kind: akAny),
-    handlers: initTable[CommandKind, (proc (cmd: Command): void)]()
+    handlers: initTable[CommandKind, Command -> void]()
   )
 
 func newAccept(ck: CommandKind): Accept =
