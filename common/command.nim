@@ -9,6 +9,7 @@ type
     ckJoinRoom
     ckLeaveRoom
     ckMessage
+    ckUserList
   Command* = object
     kind*: CommandKind
     data*: string  # The main data of the Command

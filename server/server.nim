@@ -3,6 +3,7 @@ import asyncdispatch
 import asynchttpserver
 import tables
 import sequtils
+import strutils
 import sugar
 
 import ../common/command
@@ -69,6 +70,9 @@ proc handleReq(req: Request) {.async, gcsafe.} =
     cmd: Command
 
   cmd = await sock.receiveCommand(ckHello)
+  if cmd.data.contains('\t'):
+    sock.close()
+    return
   let user = User(name: cmd.data, sock: sock)
   await sock.send(newCommand(ckHello, user.name))
 
@@ -82,6 +86,7 @@ proc handleReq(req: Request) {.async, gcsafe.} =
     roomFlag = true
   var room = rooms[roomName]
   await room.send(newCommand(ckJoinRoom, roomName, data2 = user.name))  # includes the current user
+  await user.sock.send(newCommand(ckUserList, roomName, room.users.map(user => user.name).join("\t")))
 
   try:
     while sock.readyState == ReadyState.Open:
