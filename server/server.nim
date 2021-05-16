@@ -33,23 +33,26 @@ proc send(sock: WebSocket; cmd: Command): Future[void] {.async.} =
   echo "send: ", cmd
   await send(sock, cmd.toJson())
 
+proc send(user: User; cmd: Command): Future[void] {.async.} =
+  await send(user.sock, cmd)
+
 proc send(room: Room; cmd: Command): Future[void] {.async.} =
   ## Send a Command to all users in room.
-  await all(room.users.map(user => user.sock.send(cmd)))
+  await all(room.users.map(user => user.send(cmd)))
 
 # proc send(room: Room; cmd: Command; exceptUser: User): Future[void] {.async.} =
 #   ## Send a Command to all users in room except `exceptUser`.
 #   var futs: seq[Future[void]]
 #   for user in room.users:
 #     if user == exceptUser: continue
-#     futs.add(user.sock.send(cmd))
+#     futs.add(user.send(cmd))
 #   await all(futs)
 
 proc removeUser(room: Room; user: User): Future[void] {.async.} =
   ## Remove a user from the room and send leave command to remaining users
   room.users.del(room.users.find(user))
   let cmd = newCommand(ckLeaveRoom, room.name, user.name)
-  await all(room.users.map(remainingUser => remainingUser.sock.send(cmd)))
+  await all(room.users.map(remainingUser => remainingUser.send(cmd)))
 
 proc receiveCommand(sock: WebSocket): Future[Command] {.async.} =
   let cmd = (await sock.receiveStrPacket()).fromJson()
@@ -86,7 +89,7 @@ proc handleReq(req: Request) {.async, gcsafe.} =
     roomFlag = true
   var room = rooms[roomName]
   await room.send(newCommand(ckJoinRoom, roomName, data2 = user.name))  # includes the current user
-  await user.sock.send(newCommand(ckUserList, roomName, room.users.map(user => user.name).join("\t")))
+  await user.send(newCommand(ckUserList, roomName, room.users.map(user => user.name).join("\t")))
 
   try:
     while sock.readyState == ReadyState.Open:
