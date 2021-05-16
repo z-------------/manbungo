@@ -88,7 +88,7 @@ proc handleReq(req: Request) {.async, gcsafe.} =
     rooms[roomName] = Room(name: roomName, users: @[user])
     roomFlag = true
   var room = rooms[roomName]
-  await room.send(newCommand(ckJoinRoom, roomName, data2 = user.name))  # includes the current user
+  await room.send(newCommand(ckJoinRoom, roomName, user.name))  # includes the current user
   await user.send(newCommand(ckUserList, roomName, room.users.map(user => user.name).join("\t")))
 
   try:
@@ -97,7 +97,7 @@ proc handleReq(req: Request) {.async, gcsafe.} =
       if cmd.kind != ckMessage:
         await sock.send(newCommand(ckError, "Unexpected command kind " & $cmd.kind & "."))
         continue
-      await room.send(newCommand(ckMessage, cmd.data, data2 = user.name))
+      await room.send(newCommand(ckMessage, cmd.data, user.name))
   except WebSocketError:
     echo "socket closed."
     await room.removeUser(user)
