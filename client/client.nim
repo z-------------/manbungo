@@ -60,9 +60,10 @@ proc createCommandElem(cmd: Command): Element =
 
 # globals #
 
+let
+  wsUrl = "ws://" & $window.location.hostname & ":9001/ws"
 var
   state = newState()
-  wsUrl = "ws://" & $window.location.hostname & ":9001/ws"
   sock = newWebSocket(wsUrl)
   isOpened = false
 
