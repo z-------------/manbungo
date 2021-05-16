@@ -23,7 +23,7 @@ type
 # globals #
 
 var
-  rooms {.threadvar.}: Table[string, Room]  # Marked as threadvar to stop async from complaining about GC safeness. If we actually multithread this thing, we will need to use channels or something to update `rooms` across threads.
+  rooms {.threadvar.}: Table[string, Room]  # Marked as threadvar to stop async from complaining about GC safeness. If we actually multithread this thing, we would probably get rid of global `rooms` and make each thread correspond to one room, thus each having a thread-local `room: Room`.
   # users = initTable[string, User]()
 
 # procs #
